@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  // ADMIN can see app-wide statistics (never students' task or chat content).
+  // Only set with "npm run make-admin" on the server; nobody can sign up as an admin.
+  role           Role     @default(STUDENT)
+  name           String
+  email          String   @unique
+  passwordHash   String
+  isVerified     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  // Day (YYYY-MM-DD) the last morning email was sent, so nobody gets two in one day
+  lastReminderOn String?
+
+  // Email verification and password reset. Only a SHA-256 hash of each token is stored,
+  // so a leaked database can't be used to verify or reset anyone's account.
+  verificationTokenHash       String?
+  verificationTokenExpiresAt  DateTime?
+  passwordResetTokenHash      String?
+  passwordResetTokenExpiresAt DateTime?
+
+  // Email settings (all on by default; changed on the Settings page)
+  emailReminders       Boolean @default(true)
+  emailMorningBriefing Boolean @default(true)
+  emailTaskAdded       Boolean @default(true)
+
+  tasks         Task[]
+  conversations Conversation[]
+}
+
+model Task {
+  id              Int        @id @default(autoincrement())
+  userId          Int
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  category        String?
+  deadline        DateTime
+  // false = no time chosen: due by the end of the day (stored as 23:59:59)
+  // true  = the student picked an exact time, e.g. a 2pm submission or a 9am exam
+  deadlineHasTime Boolean    @default(false)
+  status          TaskStatus @default(NOT_STARTED)
+  // Filled in by the AI prioritisation (Phase 4)
+  estimatedHours  Float?
+  aiPriority      Int?
+  aiReason        String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  subtasks        Subtask[]
+
+  @@index([userId])
+}
+
+model Subtask {
+  id     Int     @id @default(autoincrement())
+  taskId Int
+  task   Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title  String
+  done   Boolean @default(false)
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+enum InputMethod {
+  TEXT
+  VOICE
+}
+
+// One chat session with the Molade assistant
+model Conversation {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+
+  @@index([userId])
+}
+
+// One thing said in a conversation, by the student or by Molade
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           MessageRole
+  content        String
+  // Molade's messages only: which intent it classified the request as, and its structured answer
+  intent         String?
+  data           Json?
+  // Student's messages only: spoken or typed
+  inputMethod    InputMethod?
+  // Molade's messages only: 1 = first answer passed the check, 2 = needed the corrective retry
+  aiAttempts     Int?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}

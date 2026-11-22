@@ -1,0 +1,11 @@
+# Files never uploaded to Vercel (secrets come from Vercel's environment variables instead)
+node_modules
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+*.log
+client/dist
+.claude
+*.docx

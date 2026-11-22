@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* Molade theme: layered blue-tinted blacks, one confident blue, Geist type.
+   Use these as Tailwind classes, e.g. bg-background, bg-surface, text-primary-light, border-border */
+@theme {
+  --font-sans: "Geist", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, Consolas, monospace;
+
+  /* Grounds, darkest to lightest */
+  --color-background: #07080b;
+  --color-sidebar: #0a0c10;
+  --color-surface: #0d1016;
+  --color-card: #0d121b;
+  --color-raised: #141a24;
+  --color-inset: #0a0e15;
+
+  /* Lines */
+  --color-border: #1a212c;
+  --color-border-strong: #253045;
+  --color-border-blue: #1e2a3d;
+
+  /* Text */
+  --color-text: #e8edf5;
+  --color-muted: #8a97ab;
+  --color-subtle: #6f7c90;
+
+  /* The one blue, and its softer tints */
+  --color-primary: #3b7bff;
+  --color-primary-hover: #2f6bea;
+  --color-primary-light: #9cc2ff;
+  --color-ice: #cfe0ff;
+  --color-primary-soft: #16233a;
+  --color-bubble: #1a2b4d;
+
+  /* Meaning (separate from the brand blue) */
+  --color-soon: #f5c46a;
+  --color-overdue: #ff7a6e;
+  --color-done: #3dd6a3;
+}
+
+body {
+  @apply bg-background font-sans text-text antialiased;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Visible keyboard focus everywhere */
+:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 2px;
+}
+
+/* The Molade orb */
+.orb {
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #e4eeff 0%, #5b97ff 40%, #1d47a8 78%, #0d2257 100%);
+  box-shadow: 0 0 40px rgba(76, 141, 255, 0.5);
+}
+.orb-ring {
+  position: absolute;
+  border-radius: 9999px;
+  border: 1px solid rgba(76, 141, 255, 0.3);
+}
+
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(76, 141, 255, 0.5); }
+  50% { transform: scale(1.06); box-shadow: 0 0 80px rgba(76, 141, 255, 0.75); }
+}
+@keyframes ring-pulse {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.orb-active .orb { animation: orb-breathe 1.6s ease-in-out infinite; }
+.orb-active .orb-ring { animation: ring-pulse 1.8s ease-out infinite; }
+.orb-active .orb-ring:nth-child(2) { animation-delay: 0.6s; }
+.orb-active .orb-ring:nth-child(3) { animation-delay: 1.2s; }
+.wave-bar { animation: wave 0.9s ease-in-out infinite; transform-origin: bottom; }
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-active .orb, .orb-active .orb-ring, .wave-bar { animation: none; }
+}

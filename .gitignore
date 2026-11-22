@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Secrets: never commit these (Vercel's .env.local included)
+.env
+.env.*
+!.env.example
+
+# Vercel's local link to the project
+.vercel
+
+# Personal documents (the proposal) stay out of the code repo
+*.docx
